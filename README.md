@@ -1,4 +1,3 @@
-
 # Mediroza General Hospital
 ## External Black-Box Web Application Penetration Testing
 
@@ -219,4 +218,747 @@ Tools included:
 
 **Impact:** Dictionary-based password recovery demonstrated that the passwords did not provide adequate protection against offline password guessing.
 
-### Phase 5 — PDF
+### Phase 5 — PDF Metadata Analysis
+
+**Objective:** Examine document metadata and correlate internal identifiers with the exposed database records.
+
+#### F-04: Sensitive PDF Metadata Disclosure
+
+Metadata was extracted from all three decrypted pathology reports.
+
+**Observed metadata:**
+
+| Source | Finding |
+|---|---|
+| Report 1 | Author: Mediroza Diagnostics Lab |
+| Report 2 | Author: Mediroza Diagnostics Lab |
+| Report 3 | Author: j.malik |
+| All reports | Creator: Mediroza CMS 1.4.2 |
+| All reports | Producer: Mediroza Lab Reporting Module |
+| Report 3 | Comment referenced the legacy `/old/` backup directory |
+
+**Database correlation:**
+
+The identifier `j.malik` matched Jameel Malik, identified as an IT Systems Administrator in the exposed staff table.
+
+The metadata comment also referenced the legacy backup directory discovered during reconnaissance.
+
+**Impact:** Document metadata disclosed internal identifiers, software information and legacy infrastructure references.
+
+## 6. Evidence and Screenshots
+
+The following evidence categories document the assessment activities.
+
+| Figure | Evidence Description |
+|---|---|
+| 01 | WHOIS, WhatWeb and robots.txt discovery |
+| 02 | Legacy directory listing and SQL backup retrieval |
+| 03 | Staff table structure and records |
+| 04 | Shareholder table structure and records |
+| 05 | Username enumeration |
+| 06 | SQL syntax error during login testing |
+| 07 | Patient portal access |
+| 08 | PDF hash extraction |
+| 09 | Report 1 password recovery |
+| 10 | Report 2 password recovery |
+| 11 | Report 3 password recovery |
+| 12–14 | Opened pathology report evidence |
+| 15 | PDF metadata and matching staff record |
+
+**Evidence directory:** `Screenshots/`
+
+Evidence should be organized by assessment phase and figure number.
+
+## 7. Security Findings and Remediation
+
+| Finding | Recommended Remediation |
+|---|---|
+| F-01 — SQL Injection | Implement parameterized queries, separate authentication checks and suppress database error details. |
+| F-02 — Database Backup Exposure | Remove SQL backups from public directories and restrict access to backup storage. |
+| F-03 — Weak PDF Passwords | Enforce strong, unique passwords and authenticated, user-specific document access. |
+| F-04 — PDF Metadata Disclosure | Remove internal identifiers, comments and unnecessary metadata before distribution. |
+| F-05 — Username Enumeration | Use consistent authentication error messages, rate limiting and monitoring. |
+| F-06 — Directory Listing | Disable directory indexing and restrict access to legacy directories. |
+
+### Remediation Priority
+
+1. **Immediate:** Fix SQL injection and patient portal authentication bypass.
+2. **Immediate:** Remove publicly accessible database backups.
+3. **High:** Improve PDF password protection and document access controls.
+4. **Medium:** Sanitize PDF metadata.
+5. **Low:** Prevent username enumeration and disable directory listing.
+
+## 8. Conclusion
+
+The assessment demonstrated how vulnerabilities in authentication, file exposure and document security can combine to create significant risks for a web application.
+
+The most critical issue was SQL injection in the patient portal, which resulted in authentication bypass. The publicly accessible SQL backup also exposed sensitive staff and shareholder information.
+
+The assessment highlighted the importance of secure database queries, proper authentication, restricted backup storage, strong document protection and metadata sanitization.
+
+This project provided practical experience in external black-box penetration testing, vulnerability identification, evidence collection, password security assessment and professional security reporting.
+
+## 9. Learning Outcomes
+
+Through this assessment, the following practical skills were developed:
+
+- Domain reconnaissance and information gathering.
+- Web technology fingerprinting.
+- HTTP response and header analysis.
+- Directory and file enumeration.
+- SQL injection identification.
+- Authentication and authorization testing.
+- Database backup exposure assessment.
+- PDF encryption and password auditing.
+- PDF metadata extraction and analysis.
+- Evidence documentation and vulnerability reporting.
+- Security remediation recommendations.
+
+## 10. Project Information
+
+**Project:** Mediroza General Hospital — Web Application Penetration Testing
+
+**Program:** Networkwalks Cybersecurity Internship
+
+**Batch:** B084
+
+**Week:** 4
+
+**Assessment:** External Black-Box Web Application Penetration Test
+
+**Penetration Tester:** Uwes Kulabkar
+
+---
+
+## Disclaimer
+
+This repository is intended for educational and authorized cybersecurity assessment documentation.
+
+All testing activities described in this report were conducted as part of the assigned internship assessment. The findings are documented for vulnerability awareness, security analysis and remediation purposes.
+
+No unauthorized testing or access is intended or encouraged.
+
+**© 2026 — Networkwalks Cybersecurity Internship, Batch B084**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
