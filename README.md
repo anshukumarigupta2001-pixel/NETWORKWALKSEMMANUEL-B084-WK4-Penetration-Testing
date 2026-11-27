@@ -1,257 +1,222 @@
 
-Mediroza General Hospital
-Assessment 	Details
-Assessment Type 	External Black-Box Web Application Penetration Test
-Target 	https://medirozahospital.com
-Penetration Tester 	Uwes Kulabkar
-Program 	Networkwalks Cybersecurity Internship — Batch B084, Week 4
-Testing Environment 	Kali Linux, Firefox
-Overall Risk 	Critical
-01. Executive Summary
+# Mediroza General Hospital
+## External Black-Box Web Application Penetration Testing
 
-I conducted an authorized black-box assessment of the Mediroza General Hospital web application as part of the Networkwalks Cybersecurity Internship. Testing identified an SQL injection weakness in the patient login that enabled authentication bypass, an unauthenticated SQL database backup, and weak password protection on three encrypted pathology reports.
+![Assessment](https://img.shields.io/badge/Assessment-Black--Box%20Penetration%20Testing-blue)
+![Risk](https://img.shields.io/badge/Overall%20Risk-CRITICAL-red)
+![Program](https://img.shields.io/badge/Networkwalks-Batch%20B084-orange)
+![Platform](https://img.shields.io/badge/Platform-Kali%20Linux-purple)
 
-The assessment also confirmed username enumeration, directory listing, and PDF metadata disclosure. The exposed backup contained 30 staff records and 10 shareholder records. Metadata recovered from a report independently referenced the same legacy backup directory.
-Findings Overview
-ID 	Finding 	Severity 	CWE
-F-01 	SQL Injection — Patient Portal Authentication Bypass 	Critical 	CWE-89
-F-02 	Unauthenticated Database Backup Disclosure 	High 	CWE-538
-F-03 	Weak Password Protection on Patient PDFs 	High 	CWE-521
-F-04 	Sensitive PDF Metadata Disclosure 	Medium 	CWE-200
-F-05 	Username Enumeration 	Low 	CWE-204
-F-06 	Directory Listing on Legacy Directory 	Low 	CWE-548
-02. Scope & Methodology
+---
 
-Scope: The assigned Mediroza General Hospital web application and directly associated files encountered during the Networkwalks-authorized assessment.
+## 1. Project Overview
 
-Approach: Reconnaissance → Scanning & Enumeration → Initial Access → PDF Password Security → PDF Metadata Analysis.
-Tools Used
-Tool 	Purpose
-WHOIS, WhatWeb 	Domain intelligence and web-technology fingerprinting
-cURL, Wget 	HTTP inspection, directory discovery, authentication testing and backup retrieval
-Firefox / Developer Tools 	Manual login testing, portal verification and evidence collection
-grep, awk 	Database schema inspection and metadata-to-record correlation
-Networkwalks Hash Calculator 	Extraction of PDF-specific $pdf$ hashes
-Networkwalks Password Cracker 	Dictionary-based PDF password testing
-pdf2john, John the Ripper, RockYou 	Offline hash extraction and password recovery verification
-qpdf, ExifTool 	Document decryption, encryption checks and metadata examination
-03. Technical Assessment
-Phase 1 — Reconnaissance
+This repository documents an authorized external black-box web application penetration test conducted against the Mediroza General Hospital website as part of the Networkwalks Cybersecurity Internship — Batch B084, Week 4.
 
-Objective: Identify domain information, web-server technology and publicly disclosed application paths.
+The assessment focused on identifying security weaknesses in the patient portal, publicly accessible resources, database backup exposure, authentication mechanisms, and encrypted PDF documents.
 
-whois medirozahospital.com | grep -Ei '^(Domain Name:|Registrar:|Name Server:|DNSSEC:)'
-whatweb -v https://medirozahospital.com
-curl -I https://medirozahospital.com
-curl -s https://medirozahospital.com/robots.txt
+### Assessment Information
 
-Results: WHOIS identified NameCheap as the registrar and reported unsigned DNSSEC. WhatWeb fingerprinted LiteSpeed, although that request received a 403 Forbidden response; a separate cURL header request returned HTTP/2 200. The robots.txt file listed /patient/, /staff/ and /old/, providing the paths for further enumeration.
+| Assessment | Details |
+|---|---|
+| Client | Mediroza General Hospital |
+| Assessment Type | External Black-Box Web Application Penetration Test |
+| Target | https://medirozahospital.com |
+| Penetration Tester | Uwes Kulabkar |
+| Program | Networkwalks Cybersecurity Internship |
+| Batch | B084 — Week 4 |
+| Testing Environment | Kali Linux, Firefox |
+| Overall Risk | **CRITICAL** |
 
-Figure 01 — WHOIS, web fingerprinting and robots.txt discovery
+## 2. Executive Summary
 
-Reconnaissance: WHOIS information, WhatWeb and robots.txt
-Phase 2 — Scanning & Enumeration
+The assessment identified multiple security weaknesses affecting the Mediroza General Hospital web application.
 
-Objective: Inspect the discovered legacy directory and assess the exposure of its contents.
-F-06 — Directory Listing
+The most significant findings included:
 
-curl -s https://medirozahospital.com/old/
+- SQL injection in the patient login functionality, resulting in authentication bypass.
+- Unauthenticated access to a publicly exposed SQL database backup.
+- Weak password protection on three encrypted pathology reports.
+- Sensitive information disclosure through PDF metadata.
+- Username enumeration through inconsistent authentication responses.
+- Directory listing on a legacy application directory.
 
-Result: The /old/ directory returned an index listing that disclosed mediroza_db_backup_2019.sql.
-F-02 — Unauthenticated Database Backup Disclosure
+The exposed database backup contained 30 staff records and 10 shareholder records. The assessment also identified internal identifiers and legacy backup references within PDF metadata.
 
-curl -I https://medirozahospital.com/old/mediroza_db_backup_2019.sql
-wget https://medirozahospital.com/old/mediroza_db_backup_2019.sql
+These weaknesses demonstrate how multiple security issues can combine to increase the risk of unauthorized access and sensitive information disclosure.
 
-Result: The backup was accessible without authentication (HTTP 200, text/x-sql; 6,346 bytes).
+## 3. Findings Overview
 
-Figure 02 — Exposed directory listing and database backup retrieval
+| ID | Vulnerability | Severity | CWE |
+|---|---|---|---|
+| F-01 | SQL Injection — Patient Portal Authentication Bypass | Critical | CWE-89 |
+| F-02 | Unauthenticated Database Backup Disclosure | High | CWE-538 |
+| F-03 | Weak Password Protection on Patient PDFs | High | CWE-521 |
+| F-04 | Sensitive PDF Metadata Disclosure | Medium | CWE-200 |
+| F-05 | Username Enumeration | Low | CWE-204 |
+| F-06 | Directory Listing on Legacy Directory | Low | CWE-548 |
 
-Legacy directory listing and SQL backup retrieval
+**Overall Assessment Risk: CRITICAL**
 
-Database inspection
+## 4. Scope and Methodology
 
-grep 'CREATE TABLE' mediroza_db_backup_2019.sql
-less -S mediroza_db_backup_2019.sql
+### Scope
 
-The backup contained a staff table (30 records) and a shareholders table (10 records). Exposed fields included names, contact details, national identifiers, salaries and ownership information.
+The assessment covered the assigned Mediroza General Hospital web application and directly associated files encountered during the authorized testing exercise.
 
-Figure 03 — Staff table structure and populated records
+### Testing Methodology
 
-SQL backup: staff table structure and records
+The assessment followed these phases:
 
-Figure 04 — Shareholder table structure and populated records
+1. Reconnaissance
+2. Scanning and Enumeration
+3. Initial Access and Authentication Testing
+4. PDF Password Security Assessment
+5. PDF Metadata Analysis
+6. Evidence Collection and Reporting
 
-SQL backup: shareholder table structure and records
+### Tools and Technologies
 
-Impact: Public access to the database backup disclosed sensitive organizational and financial records. Directory listing made the legacy file easier to discover.
-Phase 3 — Initial Access & SQL Injection
+| Tool | Purpose |
+|---|---|
+| WHOIS | Domain registration and DNS intelligence |
+| WhatWeb | Web technology fingerprinting |
+| cURL | HTTP inspection and response analysis |
+| Wget | File retrieval and exposure verification |
+| Firefox Developer Tools | Manual application testing |
+| grep and awk | Database inspection and record correlation |
+| Networkwalks Hash Calculator | PDF password hash extraction |
+| Networkwalks Password Cracker | Dictionary-based password testing |
+| pdf2john | PDF hash extraction |
+| John the Ripper | Offline password auditing |
+| RockYou Wordlist | Dictionary-based password auditing |
+| qpdf | PDF decryption and encryption analysis |
+| ExifTool | PDF metadata examination |
 
-Objective: Examine authentication responses, confirm unsafe SQL input handling and assess access to the patient portal.
-F-05 — Username Enumeration
+## 5. Technical Assessment
 
-Nonexistent username
+### Phase 1 — Reconnaissance
 
-curl -s -X POST https://medirozahospital.com/patient/login.php -d "username=user01&password=invalid_user01" | grep -i "Username not found"
+**Objective:** Identify domain information, web technologies, server configuration and publicly disclosed application paths.
 
-Existing username
+Activities:
+- WHOIS domain enumeration.
+- Web server and technology fingerprinting.
+- HTTP response header inspection.
+- robots.txt analysis.
 
-curl -s -X POST https://medirozahospital.com/patient/login.php -d "username=admin&password=invalid_user01" | grep -i "Incorrect password"
+**Key observations:**
+- NameCheap was identified as the domain registrar.
+- DNSSEC was reported as unsigned.
+- LiteSpeed was identified through web technology fingerprinting.
+- WhatWeb received an HTTP 403 response, while a separate cURL request returned HTTP/2 200.
+- robots.txt disclosed the following paths:
+  - `/patient/`
+  - `/staff/`
+  - `/old/`
 
-Username 	Observed response
-user01 	Username not found
-admin 	Incorrect password
+**Evidence:** WHOIS information, WhatWeb output and robots.txt discovery.
 
-Different authentication error messages disclosed whether a username existed.
+### Phase 2 — Scanning and Enumeration
 
-Figure 05 — Username enumeration and authentication responses
+**Objective:** Investigate discovered application paths and identify publicly accessible files.
 
-Different login responses with authentication-error evidence
-F-01 — SQL Injection Authentication Bypass
+#### F-06: Directory Listing
 
-Malformed input in the username parameter produced a MySQL mysqli_query() syntax warning, indicating unsafe handling of SQL input in the authentication process.
+The legacy `/old/` directory returned a directory index that exposed the following file:
 
-Login-bypass input used in the username field
+`mediroza_db_backup_2019.sql`
 
-admin' --
+**Observation:** Directory indexing allowed visitors to discover legacy application files.
 
-Observed result: The login test provided access to /patient/portal.php without a valid password. The portal displayed My lab reports and three downloadable, encrypted pathology reports.
+#### F-02: Unauthenticated Database Backup Disclosure
 
-Technical explanation: The single quote can terminate a string literal in a dynamically constructed SQL statement. When treated as SQL syntax, -- introduces a comment that can cause a subsequent password condition to be ignored. This describes the likely mechanism observed during black-box testing; the server-side SQL source was not available for inspection.
+The SQL backup was accessible without authentication.
 
-Figure 06 — SQL syntax error disclosed by the patient login
+**Observed response:**
+- HTTP Status: 200 OK
+- Content Type: text/x-sql
+- File Size: 6,346 bytes
 
-Patient login displaying a MySQL syntax error
+**Database inspection identified:**
+- Staff table: 30 records.
+- Shareholders table: 10 records.
 
-Figure 07 — Patient portal access and available pathology reports
+Exposed information included names, contact information, national identifiers, salary information and ownership details.
 
-Patient portal showing three downloadable pathology reports
+**Impact:** Unauthorized access to sensitive organizational and financial information.
 
-Impact: The authentication weakness permitted access to protected portal functionality and retrieval of the encrypted pathology reports. Access to those reports is documented as the impact of F-01, not counted as a separate independently verified authorization flaw.
-Phase 4 — PDF Password Security
+### Phase 3 — Initial Access and SQL Injection
 
-Objective: Identify document encryption, extract PDF password-auditing hashes and evaluate password strength.
-F-03 — Weak PDF Password Protection
+**Objective:** Evaluate authentication responses, identify unsafe SQL input handling and verify patient portal access.
 
-PDF encryption inspection
+#### F-05: Username Enumeration
 
-exiftool -FileName -PDFVersion -Encryption ~/Downloads/patient_report_{1,2,3}.pdf
+Testing identified different responses for existing and nonexistent usernames.
 
-Result: All three were PDF 1.4 files using Standard V2.3 (128-bit) encryption.
+| Test Case | Observed Response |
+|---|---|
+| Nonexistent username | Username not found |
+| Existing username | Incorrect password |
 
-PDF hash extraction
+**Impact:** An attacker could identify valid usernames through authentication error messages.
 
-for f in ~/Downloads/patient_report_{1,2,3}.pdf; do perl /usr/share/john/pdf2john.pl "$f"; done
+#### F-01: SQL Injection — Authentication Bypass
 
-The $pdf$ hashes were also extracted with Networkwalks Hash Calculator and tested using Networkwalks Password Cracker. John the Ripper provided offline verification with the RockYou dictionary.
+Testing of the patient login identified a MySQL `mysqli_query()` syntax warning following malformed username input.
 
-Figure 08 — PDF hash extraction using Networkwalks Hash Calculator
+The observed behavior indicated unsafe SQL input handling.
 
-PDF password hash extraction
+**Observed test input:**
 
-John the Ripper verification — Report 3
+`admin' --`
 
-(
-  h=$(mktemp); p=$(mktemp)
-  trap 'rm -f "$h" "$p"' EXIT
-  perl /usr/share/john/pdf2john.pl ~/Downloads/patient_report_3.pdf | sed 's/\*4294967292\*/\*-4\*/' > "$h"
-  gzip -dc /usr/share/wordlists/rockyou.txt.gz | john --stdin --format=PDF --pot="$p" "$h"
-  john --show --format=PDF --pot="$p" "$h" | tail -n 1
-)
+**Result:** The login test provided access to the patient portal without a valid password.
 
-The PDF permissions field required conversion from its unsigned representation before John accepted the extracted hash.
-Document 	Encryption 	Password recovery
-patient_report_1.pdf 	Standard V2.3 (128-bit) 	Successful
-patient_report_2.pdf 	Standard V2.3 (128-bit) 	Successful
-patient_report_3.pdf 	Standard V2.3 (128-bit) 	Successful
+The portal displayed the My Lab Reports section and three downloadable encrypted pathology reports.
 
-Figure 09 — Report 1 password recovery
+**Technical explanation:**
 
-Report 1 dictionary password recovery
+The observed behavior was consistent with SQL injection caused by dynamically constructed SQL statements. A single quote can terminate a SQL string literal, while SQL comment syntax can alter the interpretation of the remaining query.
 
-Figure 10 — Report 2 password recovery
+The server-side source code was not available, so the exact SQL implementation was not independently inspected.
 
-Report 2 dictionary password recovery
+**Impact:** Authentication bypass exposed protected patient portal functionality and access to the three encrypted reports.
 
-Figure 11 — Report 3 password recovery
+### Phase 4 — PDF Password Security
 
-Report 3 dictionary password recovery
+**Objective:** Examine PDF encryption and evaluate the strength of password-based protection.
 
-Opened report evidence — three PDFs
+#### F-03: Weak Password Protection on Patient PDFs
 
-Opened pathology report 1 Opened pathology report 2 Opened pathology report 3
+Three pathology reports were downloaded from the patient portal and examined.
 
-Figure 12 — Report 1        Figure 13 — Report 2        Figure 14 — Report 3
+**Encryption observations:**
 
-Impact: All three report passwords were recovered through dictionary testing, reducing the confidentiality provided by password-based encryption after the documents were obtained.
-Phase 5 — PDF Metadata Analysis
+- PDF Version: 1.4
+- Encryption: Standard V2.3
+- Key Length: 128-bit
+- Password Recovery: Successful on all three reports
 
-Objective: Examine metadata from all three decrypted PDFs and correlate internal identifiers with database records.
-F-04 — Sensitive PDF Metadata Disclosure
+The assessment used PDF hash extraction, dictionary-based password auditing and offline verification.
 
-Metadata extraction (Kali zsh)
+Tools included:
+- Networkwalks Hash Calculator
+- Networkwalks Password Cracker
+- pdf2john
+- John the Ripper
+- RockYou Wordlist
+- qpdf
+- ExifTool
 
-for n in 1 2 3; do
-  read -rs "pdfpass?PDF $n password: "; echo
-  echo "patient_report_$n.pdf"
-  qpdf --password="$pdfpass" --decrypt ~/Downloads/patient_report_${n}.pdf - | exiftool -Author -Creator -Producer -Comments -
-  unset pdfpass
-done
+**Results:**
 
-Observed metadata
-Source 	Finding
-Reports 1 and 2 	Author: Mediroza Diagnostics Lab
-Report 3 	Author: j.malik
-All three reports 	Creator: Mediroza CMS 1.4.2; Producer: Mediroza Lab Reporting Module
-Report 3 comment 	DB backup moved to /old before site migration, do not delete
+| Document | Encryption | Password Recovery |
+|---|---|---|
+| patient_report_1.pdf | Standard V2.3 (128-bit) | Successful |
+| patient_report_2.pdf | Standard V2.3 (128-bit) | Successful |
+| patient_report_3.pdf | Standard V2.3 (128-bit) | Successful |
 
-Database correlation
+**Impact:** Dictionary-based password recovery demonstrated that the passwords did not provide adequate protection against offline password guessing.
 
-grep -Fi 'j.malik' ~/mediroza_db_backup_2019.sql | awk -F"'" '{print "Name:", $2, "| Role:", $4, "| Department:", $6}'
-
-Result: The j.malik identifier matched Jameel Malik, IT Systems Administrator, in the exposed staff table. The PDF comment corroborated the /old/ backup location found during reconnaissance and enumeration.
-
-Figure 15 — PDF metadata and matching staff database record
-
-PDF metadata and matching IT staff record
-
-Impact: Document metadata disclosed an internal identifier, software details and a backup-directory reference, strengthening the connection between the separate findings.
-04. Findings & Remediation
-Finding 	Recommended action
-F-01 — SQL Injection 	Replace string-built queries with parameterized statements, verify passwords separately and consistently, suppress database error details and regression-test authentication.
-F-02 — Exposed Database Backup 	Remove SQL dumps from publicly served directories; restrict backup storage and review exposed deployment artifacts.
-F-03 — Weak PDF Passwords 	Enforce strong, unique document passwords and authenticated, user-specific access to downloads.
-F-04 — PDF Metadata 	Strip internal author identifiers, comments and unnecessary software metadata before distributing reports.
-F-05 — Username Enumeration 	Use the same error response for failed logins; apply rate limiting and monitoring.
-F-06 — Directory Listing 	Disable directory indexing and restrict legacy paths.
-
-Remediation priority: Fix authentication and remove the public backup first, followed by report security and information-disclosure weaknesses.
-05. Conclusion
-
-The assessment demonstrated how weaknesses in authentication, file exposure and PDF password protection can compound the impact of a web application compromise. The highest-priority issues were patient-portal authentication bypass and the publicly accessible SQL backup. The recommended fixes focus on secure query handling, proper file and report access controls, strong document protection, and metadata sanitization.
-
-Uwes Kulabkar
-Networkwalks Cybersecurity Internship — Batch B084
-About
-
-Week 4 cybersecurity internship project at NetworkWalks (Batch B084) — Black-box penetration testing and vulnerability assessment of the Mediroza General Hospital web application, including documented findings, proof of concept, and remediation recommendations.
-Resources
-Readme
-Activity
-Stars
-0 stars
-Watchers
-0 watching
-Forks
-0 forks
-Report repository
-Releases
-No releases published
-Packages
-No packages published
-Contributors
-1 (1)
-
-    @realuwes
-    realuwesUwes Kulabkar
-
+### Phase 5 — PDF
